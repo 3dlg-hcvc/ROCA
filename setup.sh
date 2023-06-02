@@ -1,3 +1,4 @@
+# module load LIB/CUDA/11.1 LIB/CUDNN/8.0.5-CUDA11.1  ### on Solar
 # conda environment
 conda create -n roca python=3.8
 conda activate roca
