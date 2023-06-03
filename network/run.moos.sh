@@ -24,4 +24,4 @@ python main.py \
     --seed $SEED \
     --data_name $DATA_NAME \
     --eval_period 10000 \
-    --batch_size 8 \
+    --batch_size 4 \
