@@ -156,23 +156,24 @@ class Trainer(DefaultTrainer):
     @classmethod
     def build_evaluator(cls, cfg, dataset_name: str):
         full_annot = MetadataCatalog.get(dataset_name).full_annot
-        v2c_eval = Vid2CADEvaluator(
-            dataset_name,
-            full_annot,
-            cfg,
-            output_dir=cfg.OUTPUT_DIR
-        )
-        v2c_eval_ret = Vid2CADEvaluator(
-            dataset_name,
-            full_annot,
-            cfg,
-            output_dir=cfg.OUTPUT_DIR,
-            exact_ret=True,
-            key_prefix='retrieval_'
-        )
+        # v2c_eval = Vid2CADEvaluator(
+        #     dataset_name,
+        #     full_annot,
+        #     cfg,
+        #     output_dir=cfg.OUTPUT_DIR
+        # )
+        # v2c_eval_ret = Vid2CADEvaluator(
+        #     dataset_name,
+        #     full_annot,
+        #     cfg,
+        #     output_dir=cfg.OUTPUT_DIR,
+        #     exact_ret=True,
+        #     key_prefix='retrieval_'
+        # )
         ap_eval = InstanceEvaluator(dataset_name, cfg)
         depth_eval = DepthEvaluator(dataset_name, cfg)
-        return DatasetEvaluators([ap_eval, depth_eval, v2c_eval, v2c_eval_ret])
+        # return DatasetEvaluators([ap_eval, depth_eval, v2c_eval, v2c_eval_ret])
+        return DatasetEvaluators([ap_eval, depth_eval])
 
     @classmethod
     def test(cls, cfg, model, evaluators=None):

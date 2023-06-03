@@ -157,7 +157,7 @@ class Mapper(DatasetMapper):
 
     @staticmethod
     def _get_names(splits):
-        image_name = splits[-1].replace('.jpg', '')
+        image_name = splits[-1].split('.')[0]
         scene_name = splits[-3]
         return scene_name, image_name
 
@@ -183,7 +183,7 @@ class Mapper(DatasetMapper):
 
         instance_path = os.path.join(scene_dir, 'instance', image_name)
         depth_path = os.path.join(scene_dir, 'depth', image_name)
-
+        
         depth = cv.imread(depth_path, -1)
         image_depth = Depths.decode(depth, cfg.INPUT.DEPTH_SCALE).tensor
 

@@ -52,3 +52,48 @@ def register_scan2cad(
     # Register CAD models and categories
     register_cads(name, cad_file, scene_file, point_file, grid_file)
     register_categories(name, category_file, class_freq_method)
+
+
+def register_moos(
+    name: str,
+    metadata: dict,
+    full_annot: str,
+    data_dir: str,
+    image_root: str,
+    rendering_root: str,
+    split: str,
+    class_freq_method: str = 'none'
+):
+    json_file = os.path.join(
+        data_dir, 'moos_instances_{}.json'.format(split)
+    )
+    cad_file = os.path.join(data_dir, 'moos_{}_cads.pkl'.format(split))
+    category_file = os.path.join(data_dir, 'moos_alignment_classes.json')
+    point_file = None
+    grid_file = os.path.join(data_dir, '{}_grids_32.pkl'.format(split))
+
+    # TODO: may need a train scenes in the future
+    scene_file = None
+    if split == 'val':
+        scene_file = os.path.join(data_dir, 'moos_val_scenes.json')
+
+    extra_keys = ['t', 'q', 's', 'intrinsics', 'alignment_id', 'model', 'id']
+    DatasetCatalog.register(
+        name, lambda: load_coco_json(json_file, image_root, name, extra_keys)
+    )
+
+    # Fill lazy loading stuff
+    DatasetCatalog.get(name)
+
+    MetadataCatalog.get(name).set(
+        json_file=json_file,
+        image_root=image_root,
+        evaluator_type='coco',
+        rendering_root=rendering_root,
+        full_annot=full_annot,
+        **metadata
+    )
+
+    # Register CAD models and categories
+    register_cads(name, cad_file, scene_file, point_file, grid_file)
+    register_categories(name, category_file, class_freq_method)

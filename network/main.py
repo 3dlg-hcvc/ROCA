@@ -6,7 +6,6 @@ from os import makedirs
 
 from roca.config import roca_config
 from roca.data import CategoryCatalog
-from roca.data.datasets import register_scan2cad
 from roca.engine import Trainer
 
 
@@ -59,6 +58,8 @@ def parse_args(args=None):
     parser.add_argument('--resume', default=0, type=int)
 
     parser.add_argument('--seed', default=2021, type=int)
+    
+    parser.add_argument('--data_name', default='scan2cad', type=str)
 
     args = parser.parse_args(sys.argv[1:] if args is None else args)
     print(args)
@@ -67,24 +68,36 @@ def parse_args(args=None):
 
 def register_data(args):
     data_dir = args.data_dir
-    train_name = 'Scan2CAD_train'
-    val_name = 'Scan2CAD_val'
+    data_name = args.data_name
+    train_name = f'{data_name}_train'
+    val_name = f'{data_name}_val'
+    
+    if data_name == 'scan2cad':
+        from roca.data.datasets import register_scan2cad as register_dataset
+        train_scenes = '../metadata/scannetv2_train.txt'
+        val_scenes = '../metadata/scannetv2_val.txt'
+    elif data_name == 'moos':
+        from roca.data.datasets import register_moos as register_dataset
+        train_scenes = '/project/3dlg-hcvc/rlsd/data/moos/roca/moos_scenes_train.txt'
+        val_scenes = '/project/3dlg-hcvc/rlsd/data/moos/roca/moos_scenes_val.txt'
+    else:
+        raise RuntimeError('The dataset is not supported!')
 
-    register_scan2cad(
+    register_dataset(
         name=train_name,
         split='train',
         data_dir=data_dir,
-        metadata={'scenes': path.abspath('../metadata/scannetv2_train.txt')},
+        metadata={'scenes': path.abspath(train_scenes)},
         image_root=args.image_root,
         rendering_root=args.rendering_root,
         full_annot=args.full_annot,
         class_freq_method=args.freq_scale
     )
-    register_scan2cad(
+    register_dataset(
         name=val_name,
         split='val',
         data_dir=data_dir,
-        metadata={'scenes': path.abspath('../metadata/scannetv2_val.txt')},
+        metadata={'scenes': path.abspath(val_scenes)},
         image_root=args.image_root,
         rendering_root=args.rendering_root,
         full_annot=args.full_annot

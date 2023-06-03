@@ -1,4 +1,4 @@
-. ./env.sh
+. ./env.moos.sh
 
 python main.py \
     --data_dir $DATA_DIR \
@@ -8,7 +8,7 @@ python main.py \
     --rendering_root $RENDERING_ROOT \
     --output_dir $OUTPUT_DIR \
     --override_output 1 \
-    --max_iter 80000 \
+    --max_iter 400000 \
     --checkpoint $CHECKPOINT \
     --resume $RESUME \
     --workers $NUM_WORKERS \
@@ -21,4 +21,7 @@ python main.py \
     --steps 60000 \
     --retrieval_mode $RETRIEVAL_MODE \
     --e2e $E2E \
-    --seed $SEED
+    --seed $SEED \
+    --data_name $DATA_NAME \
+    --eval_period 10000 \
+    --batch_size 8 \

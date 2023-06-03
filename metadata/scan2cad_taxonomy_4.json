@@ -1,0 +1,22 @@
+[
+    {
+        "name": "chair",
+        "nyud": ["chair", "toilet", "sofa"],
+        "shapenet": "03001627"
+    },
+    {
+        "name": "bed",
+        "nyud": ["bed"],
+        "shapenet": "02818832"
+    },
+    {
+        "name": "sofa",
+        "nyud": ["sofa", "chair"],
+        "shapenet": "04256520"
+    },
+    {
+        "name": "table",
+        "nyud": ["table", "otherfurniture"],
+        "shapenet": "04379243"
+    }
+]
