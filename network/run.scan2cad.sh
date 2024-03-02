@@ -1,4 +1,4 @@
-. ./env.roca.sh
+. ./env.scan2cad.sh
 
 python main.py \
     --data_dir $DATA_DIR \
