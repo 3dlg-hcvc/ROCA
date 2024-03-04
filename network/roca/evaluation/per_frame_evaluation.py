@@ -294,7 +294,7 @@ class DepthEvaluator(DatasetEvaluator):
         super().__init__()
         self._rendering_root = MetadataCatalog.get(dataset_name).rendering_root
         self._depth_scale = cfg.INPUT.DEPTH_SCALE
-        self.save_pred_depth = True
+        self.save_pred_depth = False
         self.save_dir = "/project/3dlg-hcvc/diorama/roca/pred_depths"
     
     def reset(self):
