@@ -37,6 +37,7 @@ class ROCAROIHeads(StandardROIHeads):
         self.output_grid_size = cfg.MODEL.ROI_MASK_HEAD.POOLER_RESOLUTION * 2
 
         self.test_min_score = cfg.MODEL.ROI_HEADS.CONFIDENCE_THRESH_TEST
+        self.back_project_pred_depth = False
 
     def _init_class_weights(self, cfg):
         class_weights = cfg.MODEL.CLASS_SCALES
@@ -128,6 +129,20 @@ class ROCAROIHeads(StandardROIHeads):
 
             pred_depths, depth_features = self._forward_image_depth(features)
             extra_outputs = {'pred_image_depths': pred_depths}
+            
+            if self.back_project_pred_depth:
+                from roca.structures import Intrinsics
+                intrinsics = Intrinsics.cat(
+                    [arg['intrinsics'] for arg in inference_args]
+                ).tensor.inverse()
+                hh, ww = image_size[::-1]
+                y, x = torch.meshgrid(torch.linspace(0, ww-1, ww), torch.linspace(0, hh-1, hh))
+                y = y.flatten().unsqueeze(0).cuda()
+                x = x.flatten().unsqueeze(0).cuda()
+                z = pred_depths.flatten().unsqueeze(0)
+                points = intrinsics @ torch.stack([x * z, y * z, z], dim=1)
+                points[:,1:,:] *= -1 # reverse y+z axis
+                extra_outputs["back_project_points"] = points
 
             pred_instances, alignment_outputs = self._forward_alignment(
                 features,

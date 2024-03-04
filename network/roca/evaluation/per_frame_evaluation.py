@@ -12,6 +12,9 @@ from tabulate import tabulate
 import matplotlib.pyplot as plt
 from PIL import Image
 
+from pytorch3d.structures import Pointclouds
+from pytorch3d.io import IO
+
 from detectron2.data import MetadataCatalog
 from detectron2.evaluation import DatasetEvaluator
 from detectron2.structures import Boxes, BoxMode, pairwise_iou
@@ -312,6 +315,7 @@ class DepthEvaluator(DatasetEvaluator):
         self._depth_scale = cfg.INPUT.DEPTH_SCALE
         self.save_pred_depth = False
         self.save_dir = "/project/3dlg-hcvc/diorama/roca/pred_depths"
+        self.save_back_proj_points = False
     
     def reset(self):
         self.depth_aes = []
@@ -351,6 +355,15 @@ class DepthEvaluator(DatasetEvaluator):
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 fig.savefig(output_path, bbox_inches='tight', pad_inches=0)
                 plt.close()
+                
+            if self.save_back_proj_points and 'back_project_points' in output:
+                back_project_points = output['back_project_points'].T
+                im = np.array(Image.open(file_name))
+                rgb = torch.tensor(im.reshape(-1, 3)).cuda()
+                pcd_file = image.replace('.png', '.ply')
+                pcd = Pointclouds(points=[back_project_points], features=[rgb])
+                # IO().save_pointcloud(pcd, 'test.ply', binary=False)
+                IO().save_pointcloud(pcd, os.path.join(self.save_dir, scene, pcd_file), binary=False)
             
             mask = mask.float()
             depth_ae = masked_l1_loss(pred_depth, gt_depth, mask).item()

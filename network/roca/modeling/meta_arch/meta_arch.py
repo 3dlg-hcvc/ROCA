@@ -146,6 +146,11 @@ class ROCA(GeneralizedRCNN):
             pred_image_depths = extra_outputs['pred_image_depths'].unbind(0)
             for depth, result in zip(pred_image_depths, results):
                 result['pred_image_depth'] = depth
+                
+        if 'back_project_points' in extra_outputs:
+            back_project_points = extra_outputs['back_project_points'].unbind(0)
+            for points, result in zip(back_project_points, results):
+                result['back_project_points'] = points
         
         # Attach CAD ids
         for cad_ids in ('cad_ids', 'wild_cad_ids'):
