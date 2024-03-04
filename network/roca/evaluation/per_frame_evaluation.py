@@ -10,10 +10,12 @@ import pycocotools.mask as mask_util
 import torch
 from tabulate import tabulate
 import matplotlib.pyplot as plt
+from PIL import Image
 
 from detectron2.data import MetadataCatalog
 from detectron2.evaluation import DatasetEvaluator
 from detectron2.structures import Boxes, BoxMode, pairwise_iou
+from detectron2.utils.visualizer import Visualizer
 
 from roca.data import CADCatalog, CategoryCatalog
 from roca.modeling.loss_functions import masked_l1_loss
@@ -35,6 +37,9 @@ class InstanceEvaluator(DatasetEvaluator):
 
         if cfg.MODEL.WILD_RETRIEVAL_ON:
             self.ap_fields = (*self.ap_fields, 'mesh')
+            
+        self.save_pred_inst = True
+        self.save_dir = "/project/3dlg-hcvc/diorama/roca/pred_insts"
 
     def reset(self):
         self.preds = {}
@@ -134,6 +139,17 @@ class InstanceEvaluator(DatasetEvaluator):
 
     def _add_preds(self, input, output):
         instances = output['instances'].to('cpu')
+        
+        if self.save_pred_inst:
+            file_name = input['file_name']
+            scene, _, image = file_name.split(os.sep)[-3:]
+            im = np.array(Image.open(file_name))
+            v = Visualizer(im, self._metadata)#, scale=1.2)
+            vis_pred = v.draw_instance_predictions(instances).get_image()
+            output_path = os.path.join(self.save_dir, scene, image)
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            Image.fromarray(vis_pred).save(output_path)
+        
         objects = []
         for i in range(len(instances)):
             # Register trivial predictions
@@ -321,6 +337,7 @@ class DepthEvaluator(DatasetEvaluator):
             if not mask.any():  # Ignore empties!
                 continue
             pred_depth = output['pred_image_depth'].cpu()
+            
             if self.save_pred_depth:
                 pred_d = pred_depth.squeeze().numpy()
                 pred_d = (pred_d * self._depth_scale).astype(np.int32)
@@ -334,6 +351,7 @@ class DepthEvaluator(DatasetEvaluator):
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 fig.savefig(output_path, bbox_inches='tight', pad_inches=0)
                 plt.close()
+            
             mask = mask.float()
             depth_ae = masked_l1_loss(pred_depth, gt_depth, mask).item()
             self.depth_aes.append(depth_ae)
