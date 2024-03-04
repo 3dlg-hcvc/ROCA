@@ -9,6 +9,7 @@ import numpy as np
 import pycocotools.mask as mask_util
 import torch
 from tabulate import tabulate
+import matplotlib.pyplot as plt
 
 from detectron2.data import MetadataCatalog
 from detectron2.evaluation import DatasetEvaluator
@@ -293,6 +294,8 @@ class DepthEvaluator(DatasetEvaluator):
         super().__init__()
         self._rendering_root = MetadataCatalog.get(dataset_name).rendering_root
         self._depth_scale = cfg.INPUT.DEPTH_SCALE
+        self.save_pred_depth = True
+        self.save_dir = "/project/3dlg-hcvc/diorama/roca/pred_depths"
     
     def reset(self):
         self.depth_aes = []
@@ -318,6 +321,19 @@ class DepthEvaluator(DatasetEvaluator):
             if not mask.any():  # Ignore empties!
                 continue
             pred_depth = output['pred_image_depth'].cpu()
+            if self.save_pred_depth:
+                pred_d = pred_depth.squeeze().numpy()
+                pred_d = (pred_d * self._depth_scale).astype(np.int32)
+                dpi = plt.rcParams['figure.dpi']
+                fig_size = (pred_d.shape[1]/dpi, pred_d.shape[0]/dpi)
+                fig = plt.figure(figsize=fig_size)
+                ax = fig.add_axes([0, 0, 1, 1])
+                ax.axis('off')
+                im = ax.imshow(pred_d, cmap='gray')
+                output_path = os.path.join(self.save_dir, scene, image)
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                fig.savefig(output_path, bbox_inches='tight', pad_inches=0)
+                plt.close()
             mask = mask.float()
             depth_ae = masked_l1_loss(pred_depth, gt_depth, mask).item()
             self.depth_aes.append(depth_ae)
